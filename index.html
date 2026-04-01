@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Pauta"/>
+<meta name="theme-color" content="#ffffff"/>
+<title>Pauta Alimentaria</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:#F7F6F2;--surface:#FFFFFF;--surface2:#F0EEE8;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.13);
+    --text:#1A1A18;--text2:#6B6A65;--text3:#9E9D98;
+    --green:#1D9E75;--green-light:#E1F5EE;
+    --amber:#BA7517;--amber-light:#FAEEDA;
+    --purple:#534AB7;--purple-light:#EEEDFE;
+    --blue:#185FA5;--radius:14px;--radius-sm:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);overscroll-behavior:none}
+  .app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+
+  /* Install banner */
+  .install-banner{display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--text);color:#fff;padding:14px 16px;z-index:200;align-items:center;gap:10px}
+  .install-banner.show{display:flex}
+  .ib-text{flex:1;font-size:13px;line-height:1.4}
+  .ib-text strong{font-weight:600}
+  .btn-install{font-size:13px;padding:7px 14px;border-radius:var(--radius-sm);border:none;background:var(--green);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;white-space:nowrap;flex-shrink:0}
+  .btn-dismiss{font-size:20px;background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0}
+
+  /* Header */
+  .header{padding:52px 20px 0;background:var(--surface);border-bottom:0.5px solid var(--border)}
+  .header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+  .header h1{font-size:22px;font-weight:600;letter-spacing:-0.4px}
+  .header-sub{font-size:13px;color:var(--text2);margin-top:2px}
+  .avatar-row{display:flex}
+  .avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid var(--surface)}
+  .av-p{background:var(--amber-light);color:var(--amber);margin-right:-8px;z-index:2}
+  .av-n{background:var(--purple-light);color:var(--purple)}
+
+  /* Week tabs */
+  .week-tabs{display:flex;gap:6px;padding:0 0 14px}
+  .wtab{flex:1;padding:7px 4px;font-size:13px;font-weight:500;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:center}
+  .wtab:active{transform:scale(0.97)}
+  .wtab.active{background:var(--text);color:#fff;border-color:var(--text)}
+
+  /* Day nav */
+  .day-nav-wrap{background:var(--surface);padding:12px 20px 14px;border-bottom:0.5px solid var(--border)}
+  .day-nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+  .day-nav::-webkit-scrollbar{display:none}
+  .db{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 10px 6px;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:transparent;cursor:pointer;transition:all 0.15s;min-width:46px;font-family:'DM Sans',sans-serif}
+  .db-label{font-size:12px;font-weight:500;color:var(--text2)}
+  .db-dots{display:flex;gap:2px}
+  .db-dot{width:4px;height:4px;border-radius:50%;background:var(--border2)}
+  .db-dot.ok{background:var(--green)}
+  .db.active{background:var(--text);border-color:var(--text)}
+  .db.active .db-label{color:#fff}
+  .db.active .db-dot{background:rgba(255,255,255,0.3)}
+  .db.active .db-dot.ok{background:#5DCAA5}
+
+  /* Scroll */
+  .scroll{flex:1;overflow-y:auto;padding:16px 20px 100px}
+  .scroll::-webkit-scrollbar{display:none}
+  .section-label{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:8px;margin-top:20px}
+  .section-label:first-child{margin-top:0}
+
+  /* Cards */
+  .card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:8px;transition:border-color 0.2s}
+  .card.done{border-color:var(--green)}
+  .card-main{display:flex;align-items:center;gap:12px;padding:13px 14px}
+  .meal-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+  .icon-paula{background:var(--amber-light)}
+  .icon-naya{background:var(--purple-light)}
+  .icon-almuerzo{background:var(--green-light)}
+  .icon-cena{background:#EEEDFE}
+  .meal-info{flex:1;min-width:0}
+  .meal-person{font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:2px}
+  .person-paula{color:var(--amber)}
+  .person-naya{color:var(--purple)}
+  .meal-name{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card.done .meal-name{color:var(--green);text-decoration:line-through;text-decoration-color:#9FE1CB}
+  .card-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .btn-check{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:transparent;transition:all 0.15s}
+  .btn-check:active{transform:scale(0.9)}
+  .card.done .btn-check{border-color:var(--green);background:var(--green);color:#fff}
+  .btn-edit{font-size:12px;color:var(--text3);background:none;border:0.5px solid var(--border2);border-radius:6px;padding:4px 9px;cursor:pointer;font-family:'DM Sans',sans-serif}
+  .btn-edit:active{background:var(--surface2)}
+  .edit-panel{display:none;padding:10px 14px 12px;border-top:0.5px solid var(--border);background:var(--surface2)}
+  .edit-panel.open{display:block}
+  .edit-panel input{width:100%;font-size:14px;padding:8px 11px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;margin-bottom:8px;outline:none}
+  .edit-panel input:focus{border-color:var(--blue)}
+  .ep-btns{display:flex;gap:6px}
+  .btn-save{font-size:13px;padding:6px 14px;border-radius:var(--radius-sm);border:none;background:var(--text);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500}
+  .btn-cancel{font-size:13px;padding:6px 14px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif}
+
+  /* Progress */
+  .prog-bar-wrap{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-top:0.5px solid var(--border);padding:12px 20px 28px}
+  .prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+  .prog-label{font-size:12px;color:var(--text2)}
+  .prog-count{font-size:12px;font-weight:600;color:var(--text)}
+  .bar-bg{height:5px;background:var(--surface2);border-radius:99px;overflow:hidden}
+  .bar-fill{height:100%;background:var(--green);border-radius:99px;transition:width 0.35s cubic-bezier(.4,0,.2,1)}
+
+  /* iOS install hint */
+  .ios-hint{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:390px;background:var(--text);color:#fff;border-radius:var(--radius);padding:14px 16px;z-index:200;font-size:13px;line-height:1.6}
+  .ios-hint.show{display:block}
+  .ios-hint strong{font-weight:600}
+  .ios-hint-close{float:right;background:none;border:none;color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer;line-height:1;margin-top:-2px}
+  .ios-hint::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:8px solid var(--text)}
+</style>
+</head>
+<body>
+
+<div class="install-banner" id="installBanner">
+  <div class="ib-text"><strong>Instala Pauta</strong> en tu teléfono para usarla sin internet</div>
+  <button class="btn-install" id="btnInstall">Instalar</button>
+  <button class="btn-dismiss" onclick="dismissBanner()">✕</button>
+</div>
+
+<div class="ios-hint" id="iosHint">
+  Para instalar en iPhone: toca <strong>Compartir</strong> (⬆) en Safari y luego <strong>"Agregar a pantalla de inicio"</strong>
+  <button class="ios-hint-close" onclick="document.getElementById('iosHint').classList.remove('show');localStorage.setItem('ios_hint_dismissed','1')">✕</button>
+</div>
+
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <h1>Pauta alimentaria</h1>
+        <div class="header-sub">Paula &amp; Nayadeth</div>
+      </div>
+      <div class="avatar-row">
+        <div class="avatar av-p">P</div>
+        <div class="avatar av-n">N</div>
+      </div>
+    </div>
+    <div class="week-tabs" id="weekTabs"></div>
+  </div>
+  <div class="day-nav-wrap"><div class="day-nav" id="nav"></div></div>
+  <div class="scroll" id="scroll"></div>
+  <div class="prog-bar-wrap">
+    <div class="prog-row">
+      <span class="prog-label">Comidas completadas hoy</span>
+      <span class="prog-count" id="progCount">0 / 4</span>
+    </div>
+    <div class="bar-bg"><div class="bar-fill" id="bar" style="width:0%"></div></div>
+  </div>
+</div>
+
+<script>
+const DIAS=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const UNICO=['Sáb','Dom'];
+const SEMANAS_BASE=[
+  {Lun:{DP:'Yogurt + Cereal',DN:'Pan + Huevo',A:'Merluza con arroz integral',C:'Surtido de mariscos con arroz blanco'},Mar:{DP:'Yogurt + Avena',DN:'Pan + Humus',A:'Mariscos con arroz',C:'Lentejas con choclo y ensalada de apio'},Mié:{DP:'Yogurt + Cereal',DN:'Pan + Palta',A:'Lentejas con choclo',C:'Merluza al horno con ensalada de pepino'},Jue:{DP:'Galletas de arroz + Humus',DN:'Pan + Huevo',A:'Merluza con pepino',C:'NotBurger con ensalada de lechuga y pimentón'},Vie:{DP:'Yogurt + Avena',DN:'Pan + Palta',A:'NotBurger con lechuga',C:'Porotos negros con choclo y pimentón'},Sáb:{DP:'Pan integral con Huevo y Humus',A:'Atún con quinoa y pepino',C:'Pan o galletas con palta y lechuga'},Dom:{DP:'Omelet de pimentón y choclo',A:'Arroz integral con ensalada de apio y huevo',C:'Pasta integral con proteína vegetal'}},
+  {Lun:{DP:'Yogurt + Cereal',DN:'Pan + Huevo',A:'Pasta con proteína',C:'Arroz integral con salteado de zanahoria y cebolla'},Mar:{DP:'Yogurt + Avena',DN:'Pan + Humus',A:'Arroz con vegetales',C:'Garbanzos con tomate picado y cebolla'},Mié:{DP:'Yogurt + Cereal',DN:'Pan + Palta',A:'Garbanzos con tomate',C:'Atún con papas cocidas y zanahoria rallada'},Jue:{DP:'Galletas de arroz + Palta',DN:'Pan + Huevo',A:'Atún con papas',C:'Lentejas con zanahoria y cebolla'},Vie:{DP:'Yogurt + Avena',DN:'Pan + Humus',A:'Lentejas con zanahoria',C:'Merluza al horno con arroz y tomate'},Sáb:{DP:'Pan con Huevo y tomate',A:'Surtido de mariscos con arroz blanco',C:'Pan con palta y humus'},Dom:{DP:'Huevos revueltos con cebolla',A:'Tortilla de zanahoria y cebolla con ensalada',C:'Galletas con humus y tomate'}},
+  {Lun:{DP:'Yogurt + Cereal',DN:'Pan + Humus',A:'Tortilla de zanahoria',C:'Couscous con salteado de zapallito italiano'},Mar:{DP:'Yogurt + Avena',DN:'Pan + Huevo',A:'Couscous con zapallito',C:'Porotos negros con espinaca picada'},Mié:{DP:'Yogurt + Cereal',DN:'Pan + Palta',A:'Porotos con espinaca',C:'Merluza con brócoli al vapor'},Jue:{DP:'Galletas de arroz + Humus',DN:'Pan + Huevo',A:'Merluza con brócoli',C:'Garbanzos con zapallito italiano'},Vie:{DP:'Yogurt + Avena',DN:'Pan + Palta',A:'Garbanzos con zapallito',C:'Tortilla de espinaca y brócoli (usa los huevos)'},Sáb:{DP:'Pan con Huevo y espinaca',A:'Atún con quinoa y brócoli',C:'Pan con palta y humus'},Dom:{DP:'Omelet de zapallito italiano',A:'Arroz con huevo y ensalada de espinaca',C:'Galletas de arroz con humus'}},
+  {Lun:{DP:'Yogurt + Cereal',DN:'Pan + Palta',A:'Arroz con huevo',C:'Pasta integral con salsa de tomate y proteína vegetal'},Mar:{DP:'Yogurt + Avena',DN:'Pan + Huevo',A:'Pasta con proteína',C:'Lentejas con arroz integral'},Mié:{DP:'Yogurt + Cereal',DN:'Pan + Humus',A:'Lentejas con arroz',C:'Surtido de mariscos con papas cocidas'},Jue:{DP:'Galletas de arroz + Palta',DN:'Pan + Huevo',A:'Mariscos con papas',C:'Porotos negros con pimentón y choclo'},Vie:{DP:'Yogurt + Avena',DN:'Pan + Palta',A:'Porotos negros',C:'NotBurger con ensalada de temporada'},Sáb:{DP:'Pan con Huevo y palta',A:'Merluza con arroz blanco y ensalada',C:'Pan con humus y tomate'},Dom:{DP:'Huevos revueltos con vegetales',A:'Quinoa mediterránea con huevo y palta',C:'Galletas con humus y palta'}}
+];
+
+const jsDay=new Date().getDay();
+const todayIdx=jsDay===0?6:jsDay-1;
+let currentWeek=0,currentDay=todayIdx;
+let state;
+try{state=JSON.parse(localStorage.getItem('pauta_pn4')||'null');}catch(e){}
+if(!state) state={meals:SEMANAS_BASE.map(s=>JSON.parse(JSON.stringify(s))),done:{}};
+function save(){try{localStorage.setItem('pauta_pn4',JSON.stringify(state));}catch(e){}}
+
+function getTipos(d){
+  if(UNICO.includes(d))return[{key:'DP',label:'Desayuno',person:'shared',icon:'🌅',cls:'icon-almuerzo'},{key:'A',label:'Almuerzo',person:'shared',icon:'🍽️',cls:'icon-almuerzo'},{key:'C',label:'Cena / Once',person:'shared',icon:'🌙',cls:'icon-cena'}];
+  return[{key:'DP',label:'Desayuno',person:'paula',icon:'🌅',cls:'icon-paula'},{key:'DN',label:'Desayuno',person:'naya',icon:'🌅',cls:'icon-naya'},{key:'A',label:'Almuerzo',person:'shared',icon:'🍽️',cls:'icon-almuerzo'},{key:'C',label:'Cena / Once',person:'shared',icon:'🌙',cls:'icon-cena'}];
+}
+function dk(w,d,k){return'w'+w+'_'+d+'_'+k;}
+function getDoneCount(w,di){const d=DIAS[di];return getTipos(d).filter(t=>state.done[dk(w,d,t.key)]).length;}
+function personLabel(p){if(p==='paula')return'<div class="meal-person person-paula">Paula</div>';if(p==='naya')return'<div class="meal-person person-naya">Nayadeth</div>';return'';}
+
+function renderWeekTabs(){document.getElementById('weekTabs').innerHTML=[1,2,3,4].map((n,i)=>`<button class="wtab${i===currentWeek?' active':''}" onclick="selectWeek(${i})">Sem. ${n}</button>`).join('');}
+
+function renderNav(){document.getElementById('nav').innerHTML=DIAS.map((d,i)=>{const tipos=getTipos(d);const dots=tipos.map(t=>`<div class="db-dot${state.done[dk(currentWeek,d,t.key)]?' ok':''}"></div>`).join('');return`<button class="db${i===currentDay?' active':''}" onclick="selectDay(${i})"><span class="db-label">${d}</span><div class="db-dots">${dots}</div></button>`;}).join('');}
+
+function renderMeals(){
+  const d=DIAS[currentDay];const tipos=getTipos(d);
+  const bf=tipos.filter(t=>t.key==='DP'||t.key==='DN');
+  const rest=tipos.filter(t=>t.key==='A'||t.key==='C');
+  let html='';
+  if(bf.length){html+='<div class="section-label">Desayuno</div>';bf.forEach(t=>{html+=cardHTML(d,t);});}
+  html+='<div class="section-label">Almuerzo &amp; Cena</div>';
+  rest.forEach(t=>{html+=cardHTML(d,t);});
+  document.getElementById('scroll').innerHTML=html;
+  renderProgress(tipos.length);
+}
+
+function cardHTML(d,t){
+  const k=dk(currentWeek,d,t.key);const isDone=!!state.done[k];
+  const nombre=(state.meals[currentWeek][d]&&state.meals[currentWeek][d][t.key])||'';
+  const eid='ep_'+currentWeek+'_'+d+'_'+t.key;const iid='ip_'+currentWeek+'_'+d+'_'+t.key;
+  return`<div class="card${isDone?' done':''}"><div class="card-main"><div class="meal-icon ${t.cls}">${t.icon}</div><div class="meal-info">${personLabel(t.person)}<div class="meal-name">${nombre}</div></div><div class="card-actions"><button class="btn-check" onclick="toggleDone('${k}')">${isDone?'✓':''}</button><button class="btn-edit" onclick="toggleEdit('${eid}','${iid}')">editar</button></div></div><div class="edit-panel" id="${eid}"><input id="${iid}" value="${nombre}" placeholder="${t.label}..."/><div class="ep-btns"><button class="btn-save" onclick="saveEdit('${eid}','${iid}','${d}','${t.key}')">Guardar</button><button class="btn-cancel" onclick="toggleEdit('${eid}')">Cancelar</button></div></div></div>`;
+}
+
+function renderProgress(total){const count=getDoneCount(currentWeek,currentDay);document.getElementById('progCount').textContent=count+' / '+total;document.getElementById('bar').style.width=Math.round(count/total*100)+'%';}
+
+function selectWeek(i){currentWeek=i;renderWeekTabs();renderNav();renderMeals();document.getElementById('scroll').scrollTop=0;}
+function selectDay(i){currentDay=i;renderNav();renderMeals();document.getElementById('scroll').scrollTop=0;}
+function toggleDone(k){state.done[k]=!state.done[k];save();renderNav();renderMeals();}
+function toggleEdit(eid,iid){const panel=document.getElementById(eid);const isOpen=panel.classList.contains('open');document.querySelectorAll('.edit-panel').forEach(p=>p.classList.remove('open'));if(!isOpen){panel.classList.add('open');if(iid)setTimeout(()=>{const el=document.getElementById(iid);if(el)el.focus();},50);}}
+function saveEdit(eid,iid,d,tkey){const val=document.getElementById(iid).value.trim();if(!val)return;if(!state.meals[currentWeek][d])state.meals[currentWeek][d]={};state.meals[currentWeek][d][tkey]=val;save();document.getElementById(eid).classList.remove('open');renderNav();renderMeals();}
+
+// PWA: Android install prompt
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;if(!localStorage.getItem('install_dismissed'))document.getElementById('installBanner').classList.add('show');});
+document.getElementById('btnInstall').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBanner').classList.remove('show');});
+function dismissBanner(){document.getElementById('installBanner').classList.remove('show');localStorage.setItem('install_dismissed','1');}
+window.addEventListener('appinstalled',()=>document.getElementById('installBanner').classList.remove('show'));
+
+// PWA: iOS install hint
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone=window.navigator.standalone;
+if(isIOS&&!isStandalone&&!localStorage.getItem('ios_hint_dismissed')){
+  setTimeout(()=>document.getElementById('iosHint').classList.add('show'),2000);
+}
+
+// Service worker
+if('serviceWorker' in navigator){
+  const sw=`const C='pauta-v2';self.addEventListener('install',e=>{self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(res.ok){const clone=res.clone();caches.open(C).then(c=>c.put(e.request,clone));}return res;}).catch(()=>new Response('',{status:408}))));});`;
+  const blob=new Blob([sw],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+
+renderWeekTabs();
+selectDay(todayIdx);
+</script>
+</body>
+</html>
